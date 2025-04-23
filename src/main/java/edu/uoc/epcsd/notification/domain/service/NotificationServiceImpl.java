@@ -31,12 +31,22 @@ public class NotificationServiceImpl implements NotificationService {
             //  saying "Sending an email to user " + the user fullName
         RestTemplate restTemplate = new RestTemplate();
         GetUserResponse[] userResponseArray = restTemplate.getForObject(userServiceUrl, GetUserResponse[].class, productMessage.getProductId(), LocalDate.now());
+        GetProductResponse productResponse;
+        if (userResponseArray.length != 0) {
+            productResponse = restTemplate.getForObject(productServiceUrl, GetProductResponse.class, productMessage.getProductId());
+        } else {
+            productResponse = null;
+        }
+
 
         Arrays.stream(userResponseArray).forEach(userResponse -> {
             if (Strings.isBlank(userResponse.getFullName())) {
                 throw new RuntimeException("User name is empty");
             }
-            log.info("Sending and email to user {}. ", userResponse.getFullName());
+            if (Strings.isBlank(productResponse.getName())) {
+                throw new RuntimeException("Product name is empty");
+            }
+            log.info("Sending and email to user {}. Now the user knows there is one unit available for the product {} ", userResponse.getFullName(), productResponse.getName());
         });
 
     }
